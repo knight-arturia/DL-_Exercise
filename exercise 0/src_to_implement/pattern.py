@@ -1,5 +1,6 @@
 from matplotlib import pyplot as plt
 import numpy as np
+from numpy.core.fromnumeric import shape
 
 
 class Checker():
@@ -63,12 +64,22 @@ class Circle():
 
 class Spectrum():
     def __init__(self, resolution):
-        """
-        docstring
-        """
-        pass
-    def draw(parameter_list):
-        """
-        docstring
-        """
-        pass
+        self.Res = resolution
+    
+    def draw(self):
+        if self.Res > 4072:
+            print('Resolution is too large.\n')
+            return 0
+        # multiple the given 
+        a = np.outer(np.arange(0, 256), np.ones(256, dtype=np.uint8))
+        b = np.sqrt(np.outer(np.arange(255, -1, -1), np.arange(255, -1, -1, dtype = np.uint8)))
+        rgb = np.zeros((256, 256, 3), dtype=np.uint8)
+        rgb[:,:,0] = a.T
+        rgb[:,:,1] = a
+        rgb[:,:,2] = b
+        return rgb
+
+    def show(self):
+        Spec = self.draw()
+        plt.imshow(Spec)
+        plt.show()
