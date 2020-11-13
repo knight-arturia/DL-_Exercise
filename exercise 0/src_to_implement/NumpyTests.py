@@ -36,6 +36,8 @@ class TestCheckers(unittest.TestCase):
         c = pattern.Checker(100, 25)
         res = c.draw()
         res[:] = 0
+
+
         np.testing.assert_raises(AssertionError, np.testing.assert_array_equal,
                                  res, c.output,
                                  "draw() did not return a copy!")
