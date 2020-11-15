@@ -17,12 +17,13 @@ class Checker():
             return False
         # get the first part in the first pixel line
         a = np.concatenate((np.ones(self.til), np.zeros(self.til)))
-        # padding half of the Checker in a line form, and reshape in a square form
-        b = np.pad(a, int((self.Res**2) / 2 - self.til), 'wrap').reshape(
-            (self.Res, self.Res))
+        # padding half of the Checker in a line form, and reshape in a square
+        # form
+        b = np.pad(a, int((self.Res ** 2) / 2 - self.til), 'wrap').reshape((self.Res, self.Res))
         # b plus b_T to get the entire checkerboard
-        c = (b + b.T == 1).astype(int)
-        return c
+        self.output = (b + b.T == 1).astype(int)
+
+        return self.output
 
     def show(self):
         checker = self.draw()
@@ -44,17 +45,19 @@ class Circle():
         square = np.zeros((self.Res, self.Res))
         r = self.Rad
         # raw position of point in circle
-        x = np.arange(self.x_0 - r, self.x_0 + r, 1)
+       # x = np.arange(self.x_0 - r, self.x_0 + r, 1)
         # raw position of point in circle
-        y = np.arange(self.y_0 - r, self.y_0 + r, 1)
-        for i in x:
-            for j in y:
-                if (i - self.x_0)**2 + (j - self.y_0)**2 <= r**2:
+       # y = np.arange(self.y_0 - r, self.y_0 + r, 1)
+        for i in range(self.Res):
+            for j in range(self.Res):
+                if ((j - self.x_0) ** 2 + (i - self.y_0) ** 2) <= (self.Rad ** 2):#(j - self.x_0)**2 + (i - self.y_0)**2 <= r**2:
                     #continue
                     square[i][j] = 1
-                else:
-                    continue
-        return square
+
+        
+        self.output = square
+
+        return self.output
 
     def show(self):
         Cir = self.draw()
@@ -70,16 +73,21 @@ class Spectrum():
         if self.Res > 4072:
             print('Resolution is too large.\n')
             return 0
-        # multiple the given 
+        # multiple the given
         a = np.outer(np.arange(0, 256), np.ones(256, dtype=np.uint8))
         b = np.sqrt(np.outer(np.arange(255, -1, -1), np.arange(255, -1, -1, dtype = np.uint8)))
         rgb = np.zeros((256, 256, 3), dtype=np.uint8)
         rgb[:,:,0] = a.T
         rgb[:,:,1] = a
         rgb[:,:,2] = b
+
+        self.output = rgb
+
         return rgb
 
     def show(self):
         Spec = self.draw()
         plt.imshow(Spec)
         plt.show()
+
+
