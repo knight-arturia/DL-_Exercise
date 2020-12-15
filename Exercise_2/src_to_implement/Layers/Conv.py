@@ -20,7 +20,7 @@ class Conv:
         # insert filter batch in to weight shape; weight_shape(kern_num, channel, height, width)
         self.weight_shape = (num_kernels,) + convolution_shape
         
-        print(self.weight_shape)
+        # print(self.weight_shape)
 
         self.weights = np.random.uniform(0, 1, size=self.weight_shape)
         self.kern_num = num_kernels
@@ -130,26 +130,43 @@ class Conv:
         return output
     
     def backward(self, error_tensor):
-
+        # add a x axis for 3D error_tensor
+        if len(error_tensor.shape) == 3:
+            error_tensor = error_tensor[..., np.newaxis]
+        
         # error_tensor.shape(batch, kern_num, out_h, out_w)
-        self.err = error_tensor.transpose(0, 2, 3, 1)
+        self.err = error_tensor
+        self.err_shape = error_tensor.shape
+
         # col_err.shape(out_h*out_w*batch , kern_num)
         col_err = np.reshape(error_tensor.transpose(0, 2, 3, 1), [-1, self.kern_num])
         # cal gradient of weights and bias
         self.gradient_weights = np.dot(self.input_col.T, col_err).reshape(self.weights.shape)
         self.gradient_bias = np.sum(col_err, axis=0)
 
+        num, channels, filter_h, filter_w = self.weights.shape
         # deconv of same padded error_tensor with flippd kernel to get next_error
+        pad_h1 = int(math.floor((filter_h - 1)/2))
+        pad_h2 = int(math.ceil((filter_h - 1)/2))
+        pad_w1 = int(math.floor((filter_w - 1)/2))
+        pad_w2 = int(math.ceil((filter_w - 1)/2))
         pad_err = np.pad(self.err, (
-            (0, 0), (self.weight_shape[2] // 2, self.weight_shape[2] // 2), (self.weight_shape[3] // 2, self.weight_shape[3] // 2)), (0,0),
+            (0, 0), (0,0), (pad_h1, pad_h2), (pad_w1, pad_w2)),
             'constant', constant_values=0)
         
         # exchange axis height and width in self.weights; self.weights.shape = (n, c, h, w)
         flip_weights = self.weights.reshape([self.kern_num, self.input_channel, -1])
         flip_weights = flip_weights[:, :, ::-1]
-        col_flip_weights = flip_weights.reshape(self.kern_num, -1).T
+        flip_weights = flip_weights.swapaxes(0,1)
+        # col_flip_weight.shape = (f_h * f_w * kern_num, input_channel)
+        col_flip_weights = flip_weights.reshape(self.input_channel, -1).T
+        print("flip_weight = ", col_flip_weights.shape)
         
-        col_pad_err=self.im2col(pad_err, error_tensor.shape[3], error_tensor.shape[2], self.weight_shape[3], self.weight_shape[2])
+        out_err_h = int((pad_err.shape[2] - filter_h) / self.stri_h) + 1
+        out_err_w = int((pad_err.shape[3] - filter_w) / self.stri_w) + 1
+
+        col_pad_err=self.im2col(pad_err, filter_h, filter_w, out_err_h, out_err_w)
+        print("col_pad_err = ", col_pad_err.shape)
         next_err = np.dot(col_pad_err, col_flip_weights)
         next_err = np.reshape(next_err, self.input_shape)
         
