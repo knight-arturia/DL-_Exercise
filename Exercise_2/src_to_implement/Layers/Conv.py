@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from numpy.core.fromnumeric import shape
 
 class Conv:
@@ -9,16 +10,21 @@ class Conv:
     def __init__(self, stride_shape, convolution_shape, num_kernels):
 
         # get stride at row and col direction
-        self.stri_h = stride_shape[0] if type(stride_shape) == tuple else stride_shape
-        self.stri_w = stride_shape[1] if type(stride_shape) == tuple else stride_shape
+        self.stri_h = stride_shape[0]
+        self.stri_w = stride_shape[1] if type(stride_shape) == tuple else 1
         
-        if len(convolution_shape.shape) == 2:
-            convolution_shape.insert(2, 1)
+        # add a third dimension 1 to Conv_shape
+        if len(convolution_shape) == 2:
+            convolution_shape = convolution_shape + (1,)
+        
         # insert filter batch in to weight shape; weight_shape(kern_num, channel, height, width)
-        self.weight_shape = convolution_shape.insert(0, num_kernels)
+        self.weight_shape = (num_kernels,) + convolution_shape
+        
+        print(self.weight_shape)
+
         self.weights = np.random.uniform(0, 1, size=self.weight_shape)
         self.kern_num = num_kernels
-        self.bias = None
+        self.bias = np.random.uniform(0, 1, size=(1, num_kernels))
         self.gradient_weights = None
         self.gradient_bias = None
     
@@ -40,45 +46,86 @@ class Conv:
         self._optimizer_b = Obj
     
 
-    def im2col(self, input, w, h, f_w, f_h):
+    def im2col(self, input, f_h, f_w, out_h, out_w):
+        # input_tensor.shape = (N, C, H, W)
         # input_col.shape = (out_h * out_w * batch, channels * filter_h * filter_w )
-        input_col = []
-        for b in range(input.shape[0]):
-            for i in range(0, w - f_w + 1, self.stri_w):
-                for j in range(0, h - f_h + 1, self.stri_h):
-                    col = input[:, i:i + f_w, j:j + f_h, :].reshape([-1])
-                    input_col.append(col)
-        input_col = np.array(input_col)
-        return input_col
+        N, C, H, W = input.shape
 
+        col = np.zeros((N, C, f_h, f_w, out_h, out_w))
+
+        for y in range(f_h):
+            y_max = y + self.stri_h*out_h
+            for x in range(f_w):
+                x_max = x + self.stri_w*out_w
+                col[:, :, y, x, :, :] = input[:, :, y:y_max:self.stri_h, x:x_max:self.stri_w]
+        col = col.transpose(0, 4, 5, 1, 2, 3).reshape(N*out_h*out_w, -1)
+        return col
+
+    """
+    Transpos Variables in forward function
+    self.input_shape_origin : origin shape of input_tensor
+    self.input_shape : shape of input_tensor after padding
+    self.out_shape : shape of output
+    """
     def forward(self, input_tensor):
         
+        self.input_shape_origin = input_tensor.shape
+        
+        # add a width dimension to 3D input_tensor
+        if len(input_tensor.shape) == 3:
+            input_tensor = input_tensor[..., np.newaxis]
+        # print("Input_shape = ", input_tensor.shape)
+
+        # print("stride_h = ", self.stri_h, "stride_w = ", self.stri_w)
+
+        num, channels, filter_h, filter_w = self.weights.shape
+        
+        # SAME padding
+        pad_h1 = int(math.floor((filter_h - 1)/2))
+        pad_h2 = int(math.ceil((filter_h - 1)/2))
+        pad_w1 = int(math.floor((filter_w - 1)/2))
+        pad_w2 = int(math.ceil((filter_w - 1)/2))
         input_tensor = np.pad(input_tensor, (
-            (0, 0), (0, 0), (self.weight_shape[2] // 2, self.weight_shape[2] // 2), (self.weight_shape[3] // 2, self.weight_shape[3] // 2)),
+            (0, 0), (0, 0), (pad_h1, pad_h2), (pad_w1, pad_w2)),
             'constant', constant_values=0)
         
-        channels, filter_h, filter_w = self.weights.shape
+        # print("Input_shape_padded = ", input_tensor.shape)
+
+        
         batch, channels, height, width = input_tensor.shape
 
         self.input_shape = input_tensor.shape
         self.input_channel = channels
         # cal output shape first; padding is 0
-        out_h = int(1 + (height - filter_h) / self.stri_h)
-        out_w = int(1 + (width - filter_w) / self.stri_w)
+        out_h = int((height - filter_h) / self.stri_h) + 1
+        out_w = int((width - filter_w) / self.stri_w) + 1
         
         # transform the input_tensor to a large 2D matrix
-        self.input_col = self.im2col(input_tensor, width, height, filter_w, filter_h)
+        self.input_col = self.im2col(input_tensor, filter_h, filter_w, out_h, out_w)
+        
+        # print("input_col = ", self.input_col.shape)
         
         # tranform filter to a matrix; transit to multiply
         weight_col = self.weights.reshape(self.kern_num, -1).T
         
-        # initialize bias here as a col
-        self.bias = np.random.uniform(0, 1, size=(batch * out_h * out_w, 1))
-        self.bias_shape = self.bias.shape
+        # print("weight_col = ", weight_col.shape)
 
-        output = np.dot(self.input_col, weight_col) + self.bias
+        # add bias to the end of weight_col
+        weight_col_bias = np.r_[weight_col, self.bias]
+
+        # add one col 1 to the end of input_col
+        bias_input = np.ones((self.input_col.shape[0], 1))
+        input_plus = np.c_[self.input_col, bias_input]
+        
+        output = np.dot(input_plus, weight_col_bias)
         output = output.reshape(batch, out_h, out_w, -1).transpose(0, 3, 1, 2)
         self.out_shape = output.shape
+        
+        # if input_tensor is 3D, then change output back to 3D
+        if len(self.input_shape_origin) == 3:
+            output = np.squeeze(output, axis=3)
+        
+        print("output = ", output.shape)
 
         return output
     
@@ -115,8 +162,9 @@ class Conv:
         return next_err
 
     def initialize(self, weight_initializer, bias_initializer):
-        fan_in = self.input_shape[1] * self.input_shape[2] * self.input_shape[3]
-        fan_out = self.out_shape[1] * self.out_shape[2] * self.out_shape[3]
+        fan_in = self.weight_shape[1] * self.weight_shape[2] * self.weight_shape[3]
+        fan_out = self.weight_shape[0] * self.weight_shape[2] * self.weight_shape[3]
+        
         self.weights = weight_initializer.initialize(self.weight_shape, fan_in, fan_out)
 
-        self.bias = bias_initializer.initialize(self.bias_shape, fan_in, fan_out)
+        self.bias = bias_initializer.initialize((1, self.kern_num), fan_in, fan_out)
