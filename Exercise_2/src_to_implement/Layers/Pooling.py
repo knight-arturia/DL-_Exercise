@@ -84,7 +84,7 @@ class Pooling:
         col = col.reshape(N, out_h, out_w, C, filter_h, filter_w).transpose(0, 3, 4, 5, 1, 2)
         
         # add the padding to image
-        img = np.zeros((N, C, H + self.stri_h - 1, W + self.stri_w - 1))
+        img = np.zeros((N, C, H , W ))
         
         for y in range(filter_h):
             y_max = y + self.stri_h * out_h

@@ -117,3 +117,41 @@ Run 2020-12-16 22:38:52.906828
 On the Iris dataset, we achieve an accuracy of: 36.0%
 On the Iris dataset, we achieve an accuracy of: 30.0%
 On the Iris dataset, we achieve an accuracy of: 62.0%
+Run 2020-12-17 00:07:27.058338
+On the Iris dataset, we achieve an accuracy of: 38.0%
+On the Iris dataset, we achieve an accuracy of: 28.000000000000004%
+On the Iris dataset, we achieve an accuracy of: 28.000000000000004%
+Run 2020-12-17 00:07:46.605515
+On the Iris dataset, we achieve an accuracy of: 36.0%
+On the Iris dataset, we achieve an accuracy of: 32.0%
+On the Iris dataset, we achieve an accuracy of: 34.0%
+Run 2020-12-17 00:07:57.213212
+On the Iris dataset, we achieve an accuracy of: 32.0%
+On the Iris dataset, we achieve an accuracy of: 40.0%
+On the Iris dataset, we achieve an accuracy of: 28.000000000000004%
+Run 2020-12-17 00:08:44.467040
+On the UCI ML hand-written digits dataset, we achieve an accuracy of: 13.02170283806344%
+On the Iris dataset, we achieve an accuracy of: 30.0%
+On the Iris dataset, we achieve an accuracy of: 26.0%
+On the Iris dataset, we achieve an accuracy of: 34.0%
+Run 2020-12-17 00:11:31.865302
+Run 2020-12-17 00:17:01.284472
+On the Iris dataset, we achieve an accuracy of: 94.0%
+Run 2020-12-17 00:28:16.398007
+Run 2020-12-17 00:33:50.964813
+On the UCI ML hand-written digits dataset, we achieve an accuracy of: 21.03505843071786%
+On the Iris dataset, we achieve an accuracy of: 22.0%
+On the Iris dataset, we achieve an accuracy of: 38.0%
+On the Iris dataset, we achieve an accuracy of: 54.0%
+Run 2020-12-17 00:40:28.462762
+On the UCI ML hand-written digits dataset, we achieve an accuracy of: 20.36727879799666%
+On the Iris dataset, we achieve an accuracy of: 20.0%
+On the Iris dataset, we achieve an accuracy of: 26.0%
+On the Iris dataset, we achieve an accuracy of: 66.0%
+Run 2020-12-17 00:45:42.523626
+On the Iris dataset, we achieve an accuracy of: 96.0%
+Run 2020-12-17 00:47:00.617472
+On the UCI ML hand-written digits dataset, we achieve an accuracy of: 95.49248747913188%
+On the Iris dataset, we achieve an accuracy of: 94.0%
+On the Iris dataset, we achieve an accuracy of: 98.0%
+On the Iris dataset, we achieve an accuracy of: 96.0%

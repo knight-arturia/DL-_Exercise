@@ -1,9 +1,12 @@
 import numpy as np
 import math
+import copy
 from numpy.core.fromnumeric import shape
 
 class Conv:
-
+    
+    # a Optimizer Object
+    _optimizer = False
     _optimizer_w = False
     _optimizer_b = False
 
@@ -33,18 +36,19 @@ class Conv:
     """
     @property
     def optimizer(self):
-        return self._optimizer_w
+        return self._optimizer
     @optimizer.setter
     def optimizer(self, Obj):
-        self._optimizer_w = Obj
+        self._optimizer = Obj
+        self._optimizer_b = copy.deepcopy(self._optimizer)
+        self._optimizer_w = copy.deepcopy(self._optimizer)
     
-    @property
-    def optimizer(self):
-        return self._optimizer_b
-    @optimizer.setter
-    def optimizer(self, Obj):
-        self._optimizer_b = Obj
-    
+    # @property
+    # def optimizer(self):
+    #     return self._optimizer_b
+    # @optimizer.setter
+    # def optimizer(self, Obj):
+    #     self._optimizer_b = Obj
 
     def im2col(self, input, f_h, f_w, out_h, out_w):
         # input_tensor.shape = (N, C, H, W)

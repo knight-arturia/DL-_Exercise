@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 from numpy.core.fromnumeric import size
 from Optimization.Optimizers import Sgd
 
@@ -6,6 +7,7 @@ from Optimization.Optimizers import Sgd
 class FullyConnected:
     
     # a Optimizer Object
+    _optimizer = False
     _optimizer_w = False
     _optimizer_b = False
 
@@ -35,17 +37,18 @@ class FullyConnected:
     """
     @property
     def optimizer(self):
-        return self._optimizer_w
+        return self._optimizer
     @optimizer.setter
     def optimizer(self, Obj):
-        self._optimizer_w = Obj
-    
-    @property
-    def optimizer(self):
-        return self._optimizer_b
-    @optimizer.setter
-    def optimizer(self, Obj):
-        self._optimizer_b = Obj
+        self._optimizer = Obj
+        self._optimizer_b = copy.deepcopy(self._optimizer)
+        self._optimizer_w = copy.deepcopy(self._optimizer)
+    # @property
+    # def optimizer(self):
+    #     return self._optimizer_b
+    # @optimizer.setter
+    # def optimizer(self, Obj):
+    #     self._optimizer_b = Obj
     
     # Input matrix is (N,x+1); Weights matrix is (x+1,m); Output matrix is (N,m); 
     def forward(self, input_tensor):

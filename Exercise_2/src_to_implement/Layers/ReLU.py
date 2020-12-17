@@ -13,6 +13,7 @@ class ReLU:
         output = input_tensor.copy()
         output[self.neg] = 0
         return output
+    
     # for all negative num in forward input, their err will also be 0 in backward 
     def backward(self, error_tensor):
         error_tensor[self.neg] = 0
