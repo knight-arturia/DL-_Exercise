@@ -29,13 +29,11 @@ class Pooling:
                 x_max = x + self.stri_w * out_w
                 col[:, :, y, x, :, :] = img[:, :, y:y_max:self.stri_h, x:x_max:self.stri_w]
         
-        # col.shape = (N*out_h*out_w, Pool_h*Pool_w)
+        # col.shape = (N*out_h*out_w*C, Pool_h*Pool_w)
         col = col.transpose(0, 4, 5, 1, 2, 3).reshape(N*out_h*out_w, -1)
         return col
 
     def forward(self, input_tensor):
-
-        # print("input_shape = ", input_tensor.shape)
         
         input_shape_origin = input_tensor.shape
 
@@ -92,7 +90,6 @@ class Pooling:
                 x_max = x + self.stri_w * out_w
                 img[:, :, y:y_max:self.stri_h, x:x_max:self.stri_w] += col[:, :, y, x, :, :]
         
-        # remove the pad from output
         return img
     
 

@@ -42,13 +42,6 @@ class Conv:
         self._optimizer = Obj
         self._optimizer_b = copy.deepcopy(self._optimizer)
         self._optimizer_w = copy.deepcopy(self._optimizer)
-    
-    # @property
-    # def optimizer(self):
-    #     return self._optimizer_b
-    # @optimizer.setter
-    # def optimizer(self, Obj):
-    #     self._optimizer_b = Obj
 
     def im2col(self, input, f_h, f_w, out_h, out_w):
         # input_tensor.shape = (N, C, H, W)
@@ -82,10 +75,6 @@ class Conv:
         # extended input shape
         self.input_shape_extend = input_tensor.shape
 
-        # print("Input_shape = ", input_tensor.shape)
-        
-        # print("stride_h = ", self.stri_h, "stride_w = ", self.stri_w)
-
         num, channels, filter_h, filter_w = self.weights.shape
         
         # SAME padding
@@ -95,9 +84,6 @@ class Conv:
         pad_w2 = int(math.ceil((filter_w - 1)/2))
         input_tensor = np.pad(input_tensor, ((0, 0), (0, 0), (pad_h1, pad_h2), (pad_w1, pad_w2)),
             'constant', constant_values=0)
-        
-        # print("Input_shape_padded = ", input_tensor.shape)
-
         
         batch, channels, height, width = input_tensor.shape
 
@@ -112,26 +98,17 @@ class Conv:
         # transform the input_tensor to a large 2D matrix
         self.input_col = self.im2col(input_tensor, filter_h, filter_w, out_h, out_w)
         
-        # print("input_col = ", self.input_col.shape)
-        
         # tranform filter to a matrix; transit to multiply
         self.weight_col = self.weights.reshape(self.kern_num, -1).T
-        
-        # print("weight_col = ", weight_col.shape)
 
         # add bias to the end of weight_col
-
-        # print("weight_shape = ", self.weight_col.shape, "bias_shape = ", self.bias.shape)
-        
         weight_col_bias = np.vstack((self.weight_col, self.bias))
-        
-        # print("weight_col_shape = ",weight_col_bias.shape)
         
         # add one col 1 to the end of input_col
         bias_input = np.ones((self.input_col.shape[0], 1))
-        input_plus = np.c_[self.input_col, bias_input]
+        input_col_plus = np.c_[self.input_col, bias_input]
         
-        output = np.dot(input_plus, weight_col_bias)
+        output = np.dot(input_col_plus, weight_col_bias)
         output = output.reshape(batch, out_h, out_w, -1).transpose(0, 3, 1, 2)
         self.out_shape = output.shape
         
@@ -139,8 +116,6 @@ class Conv:
         if len(self.input_shape_origin) == 3:
             output = np.squeeze(output, axis=3)
         
-        # print("output = ", output.shape)
-
         return output
     
     """
@@ -198,8 +173,6 @@ class Conv:
         # cal grad of input in col form
         d_input_col = np.dot(col_err, self.weight_col.T)
         
-        # print("d_input_col = ", d_input_col.shape)
-
         # transform col form back to image form
         num, channels, filter_h, filter_w = self.weights.shape
         next_err = self.col2im(d_input_col, self.input_shape_extend, filter_h, filter_w)

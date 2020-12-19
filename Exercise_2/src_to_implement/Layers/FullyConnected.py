@@ -43,12 +43,6 @@ class FullyConnected:
         self._optimizer = Obj
         self._optimizer_b = copy.deepcopy(self._optimizer)
         self._optimizer_w = copy.deepcopy(self._optimizer)
-    # @property
-    # def optimizer(self):
-    #     return self._optimizer_b
-    # @optimizer.setter
-    # def optimizer(self, Obj):
-    #     self._optimizer_b = Obj
     
     # Input matrix is (N,x+1); Weights matrix is (x+1,m); Output matrix is (N,m); 
     def forward(self, input_tensor):
