@@ -14,6 +14,10 @@ class Sigmoid:
 
     def backward(self, error_tensor):
         
-        next_error_tensor = np.true_divide(1, error_tensor)
-        next_error_tensor = -np.log(next_error_tensor - 1 + np.finfo(np.float32).eps)
+        derivation_y_x = np.multiply(self.activation_tensor, 1 - self.activation_tensor)
+
+        gradient_input = np.multiply(error_tensor, derivation_y_x)
+        
+        return gradient_input
+
         

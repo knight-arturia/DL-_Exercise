@@ -8,6 +8,15 @@ from Layers.SoftMax import SoftMax
 from Optimization.Loss import CrossEntropyLoss
 from Optimization.Optimizers import Sgd
 
+def save(filename, net):
+
+    pass
+
+def load(filename, data layer):
+
+    pass
+
+
 class NeuralNetwork:
     """
     protected members
