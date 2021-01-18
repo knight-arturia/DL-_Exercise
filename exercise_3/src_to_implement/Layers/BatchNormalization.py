@@ -79,8 +79,9 @@ class BatchNormalization:
 
     def forward(self, input_tensor):
         
+
         tensor_dimension = input_tensor.ndim
-                
+        
 
         if tensor_dimension == 4:
                         
@@ -88,31 +89,56 @@ class BatchNormalization:
         
         self.input_tensor = input_tensor
         
-        BMN, C = input_tensor.shape
+        BMN = input_tensor.shape[0]
+
+        if self.weights.shape[0] == 1:
+            
+            self.weights = self.weights.repeat(BMN, axis=0)
+            self.bias = self.bias.repeat(BMN, axis=0)
 
         
-        if self.running_mean is None:
+        if not(self.testing_phase):            
+
+            mu = input_tensor.mean(axis=0)
+            mu = np.expand_dims(mu, 0).repeat(BMN, axis=0)
+
+            xc = input_tensor - mu
+
+            '''
+            if np.sum(xc) > 0.0001:
+                print("xc1")
+                print(np.sum(xc))        
+            '''
+
+            var = np.mean(xc ** 2, axis=0)        
+            var = np.expand_dims(var, 0).repeat(BMN, axis = 0)
+
+            # self.var = var
+        
             
-            self.running_mean = np.zeros(C)
-            self.running_var = np.zeros(C)
+            # calculate mean        
+            if self.running_mean is None:
 
-        mu = input_tensor.mean(axis=0)
+                self.running_mean = mu
+                self.running_var = var
 
-        xc = input_tensor - mu
-        var = np.mean(xc ** 2, axis=0)        
-
-        self.running_mean = self.momentum * self.running_mean + (1-self.momentum) * mu # default momentum = 0.8
-        self.running_var = self.momentum * self.running_var + (1-self.momentum) * var   
+            else:
+                self.running_mean = self.momentum * self.running_mean + (1-self.momentum) * mu # default momentum = 0.8
+                self.running_var = self.momentum * self.running_var + (1-self.momentum) * var   
 
         xc = input_tensor - self.running_mean
-        xn = xc / ((np.sqrt(self.running_var + np.finfo(np.float32).eps)))
+        xn = np.true_divide(xc, np.sqrt(self.running_var + np.finfo(np.float32).eps))
+        
+        '''
+        if np.sum(xc) > 0.0001:
+            print("xc2")
+            print(np.sum(xc))   
+        '''
 
         self.xn = xn
-                
-        gama = self.weights.repeat(BMN, axis=0)
-        beta = self.bias.repeat(BMN, axis=0)
-        
-        output_tensor = np.multiply(xn, gama) + beta
+            
+
+        output_tensor = np.multiply(xn, self.weights) + self.bias
 
         if tensor_dimension == 4:
                         
@@ -128,17 +154,22 @@ class BatchNormalization:
 
             error_tensor = self.reformat(error_tensor)
 
-        # Gradient with respect to weights     
-        gradient_weights = np.multiply(error_tensor, self.xn) # PA, may be matmul
+        BMN = error_tensor.shape[0]
+        
+        # Gradient with respect to weights
+        gradient_weights = np.multiply(error_tensor, self.xn)
         gradient_weights = np.sum(gradient_weights, axis=0)
-        gradient_weights = gradient_weights.reshape((1, self.channel))
+        gradient_weights = np.expand_dims(gradient_weights, 0).repeat(BMN, axis=0)
+
         self.gradient_weights = gradient_weights
                 
         # Gradient with respect to bias
         gradient_bias = np.sum(error_tensor, axis=0)
-        gradient_bias = gradient_bias.reshape((1, self.channel))
+        gradient_bias = np.expand_dims(gradient_bias, 0).repeat(BMN, axis=0)
+
         self.gradient_bias = gradient_bias
-                
+
+
         # Gradient with respect to input
         gradient_input = Helpers.compute_bn_gradients(error_tensor, self.input_tensor, self.weights, self.running_mean, self.running_var)
 

@@ -10,14 +10,18 @@ class Optimizer:
         self.reg = regularizer
 
 class Sgd(Optimizer):
+
     # init the sgd only with a learning rate
     def __init__(self, learning_rate):
         # init father class Optimizer
         super(Optimizer, self).__init__()
 
         self.lr = learning_rate
+
+        self.reg = False # for debuging
         
-    # update weights with backprobagate gradient
+    # update weights with backprobagate gradient    
+    
     def calculate_update(self, weight_tensor, gradient_tensor):
         if self.reg:
             reg_update = self.reg.calculate_gradient(weight_tensor)

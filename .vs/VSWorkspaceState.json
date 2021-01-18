@@ -3,8 +3,11 @@
     "",
     "\\exercise 0",
     "\\exercise 0\\recommand",
-    "\\exercise 0\\src_to_implement"
+    "\\exercise 0\\src_to_implement",
+    "\\exercise_3",
+    "\\exercise_3\\src_to_implement",
+    "\\exercise_3\\src_to_implement\\Layers"
   ],
-  "SelectedNode": "\\exercise 0\\src_to_implement",
+  "SelectedNode": "\\exercise_3\\src_to_implement\\Layers\\BatchNormalization.py",
   "PreviewInSolutionExplorer": false
 }
