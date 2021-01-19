@@ -1036,6 +1036,7 @@ class TestBatchNorm(unittest.TestCase):
         image_tensor = np.arange(0, 5 * 3 * 6 * 4).reshape(5, 3, 6, 4)
         vec_tensor = layer.reformat(image_tensor)
         np.testing.assert_equal(vec_tensor.shape, (120, 3))
+
         self.assertEqual(np.sum(vec_tensor, 1)[0], 72)
         self.assertEqual(np.sum(vec_tensor, 0)[0], 18660)
 
@@ -1044,6 +1045,7 @@ class TestBatchNorm(unittest.TestCase):
         layer.forward(np.arange(0, 5 * 3 * 6 * 4).reshape( 5, 3 , 6 , 4))
         vec_tensor = np.arange(0, 5 * 3 * 6 * 4).reshape(120, 3)
         image_tensor = layer.reformat(vec_tensor)
+
         np.testing.assert_equal(image_tensor.shape, (5, 3, 6, 4))
         self.assertEqual(np.sum(image_tensor, (0,1,2))[0], 15750)
         self.assertEqual(np.sum(image_tensor, (0,2,3))[0], 21420)

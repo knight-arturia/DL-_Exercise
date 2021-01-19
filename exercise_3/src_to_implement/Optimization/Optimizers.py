@@ -10,6 +10,7 @@ class Optimizer:
         self.reg = regularizer
 
 class Sgd(Optimizer):
+
     # init the sgd only with a learning rate
     def __init__(self, learning_rate):
         # init father class Optimizer

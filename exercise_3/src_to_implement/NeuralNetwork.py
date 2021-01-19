@@ -8,6 +8,31 @@ from Layers.SoftMax import SoftMax
 from Optimization.Loss import CrossEntropyLoss
 from Optimization.Optimizers import Sgd
 
+import pickle
+
+def save(filename, net):
+
+    with open(filename, mode='wb') as f:
+        pickle.dump(net, f)
+        
+
+def __getstate__():
+    pass
+def __setstate__(state):
+    pass
+
+def load(filename, data_layer):
+
+    with open(filename, mode='rb') as f:
+        net = pickle.load(f)
+    
+    net.data_layer = data_layer
+    
+    return net
+        
+
+
+
 class NeuralNetwork:
     """
     protected members
