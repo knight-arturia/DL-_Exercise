@@ -17,7 +17,7 @@ class Sgd(Optimizer):
 
         self.lr = learning_rate
     # update weights with backprobagate gradient
-    def calculate_update(self, weight_tensor, gradient_tensor):
+    def calculate_update(self, weight_tensor, gradient_tensor): 
         if self.reg:
             reg_update = self.reg.calculate_gradient(weight_tensor)
         else:
