@@ -13,7 +13,7 @@ class Conv(BaseLayer):
 
     def __init__(self, stride_shape, convolution_shape, num_kernels):
         # init father class Baslayer
-        super(BaseLayer, self).__init__()
+        super(Conv, self).__init__()
         # get stride at row and col direction
         self.stri_h = stride_shape[0]
         self.stri_w = stride_shape[1] if type(stride_shape) == tuple else 1
@@ -44,6 +44,8 @@ class Conv(BaseLayer):
         self._optimizer = Obj
         self._optimizer_b = copy.deepcopy(self._optimizer)
         self._optimizer_w = copy.deepcopy(self._optimizer)
+        # change the flag to show that optimizer is setted
+        self.optimizer_flag = True
 
     def im2col(self, input, f_h, f_w, out_h, out_w):
         # input_tensor.shape = (N, C, H, W)

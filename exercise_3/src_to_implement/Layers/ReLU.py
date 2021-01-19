@@ -7,7 +7,7 @@ class ReLU(BaseLayer):
     # receive no parameters
     def __init__(self):
         # init father class Baslayer
-        super(BaseLayer, self).__init__()
+        super(ReLU, self).__init__()
         # interface for input tensor and error tensor
         self.neg = None
     

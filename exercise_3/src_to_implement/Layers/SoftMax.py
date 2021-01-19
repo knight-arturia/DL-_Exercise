@@ -4,7 +4,7 @@ import numpy as np
 class SoftMax(BaseLayer):
     def __init__(self):
         # init father class Baslayer
-        super(BaseLayer, self).__init__()
+        super(SoftMax, self).__init__()
         self.output = None
     
     # return the probability 

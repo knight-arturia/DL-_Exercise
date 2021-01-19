@@ -9,7 +9,7 @@ class Pooling(BaseLayer):
     
     def __init__(self, stride_shape, Pooling_shape):
         # init father class Baslayer
-        super(BaseLayer, self).__init__()
+        super(Pooling, self).__init__()
 
         self.filter_shape = Pooling_shape
 

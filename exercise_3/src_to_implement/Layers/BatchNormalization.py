@@ -1,3 +1,4 @@
+from Layers.Base import BaseLayer
 import os
 import sys
 folder_path, _ = os.path.split(__file__)
@@ -6,7 +7,7 @@ sys.path.append(folder_path)
 import numpy as np
 import Helpers
 
-class BatchNormalization:
+class BatchNormalization(BaseLayer):
 
     running_mean = None    
     running_var = None
@@ -22,6 +23,8 @@ class BatchNormalization:
 
 
     def __init__(self, channel, momentum=0.8):
+
+        super(BatchNormalization, self).__init__()
         
         self.channel = channel
 

@@ -4,7 +4,7 @@ import numpy as np
 class Flatten(BaseLayer):
     def __init__(self):
         # init father class Baslayer
-        super(BaseLayer, self).__init__()
+        super(Flatten, self).__init__()
         self.ori_shape = None
         pass
     

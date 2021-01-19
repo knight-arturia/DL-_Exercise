@@ -14,7 +14,7 @@ class Sgd(Optimizer):
     # init the sgd only with a learning rate
     def __init__(self, learning_rate):
         # init father class Optimizer
-        super(Optimizer, self).__init__()
+        super(Sgd, self).__init__()
 
         self.lr = learning_rate
     # update weights with backprobagate gradient
@@ -30,7 +30,7 @@ class SgdWithMomentum(Optimizer):
 
     def __init__(self, learning_rate, momentum_rate):
         # init father class Optimizer
-        super(Optimizer, self).__init__()
+        super(SgdWithMomentum, self).__init__()
         
         self.lr = learning_rate
         self.momr = momentum_rate
@@ -43,15 +43,15 @@ class SgdWithMomentum(Optimizer):
         else:
             reg_update = 0
         
-        self.mom = self.momr * self.mom - self.lr * reg_update - self.lr * gradient_tensor
-        weight_tensor = weight_tensor + self.mom
+        self.mom = self.momr * self.mom - self.lr * gradient_tensor
+        weight_tensor = weight_tensor - self.lr * reg_update + self.mom
         return weight_tensor
 
 class Adam(Optimizer):
 
     def __init__(self, learing_rate, mu, rho):
         # init father class Optimizer
-        super(Optimizer, self).__init__()
+        super(Adam, self).__init__()
         
         self.lr = learing_rate
         self.mu = mu

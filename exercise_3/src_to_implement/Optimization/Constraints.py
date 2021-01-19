@@ -6,7 +6,9 @@ class L2_Regularizer:
     
     # cal weights term for enhanced loss 
     def norm(self, weights):
-        return self.reg_weight * np.linalg.norm(weights, ord=2, axis=None, keepdims=False)**2 
+        # flat the matrix to a vector , in order to use numpy function
+        weights_vector = weights.flatten()
+        return self.reg_weight * np.linalg.norm(weights_vector, ord=2)**2
 
     # cal gradient for backward
     def calculate_gradient(self, weights):
@@ -18,7 +20,8 @@ class L1_Regularizer:
     
     # cal weights term for enhanced loss 
     def norm(self, weights):
-        return self.reg_weight * np.linalg.norm(weights, ord=1, axis=None, keepdims=False) 
+        weights_vector = weights.flatten()
+        return self.reg_weight * np.linalg.norm(weights_vector, ord=1) 
 
     # cal gradient for backward
     def calculate_gradient(self, weights):

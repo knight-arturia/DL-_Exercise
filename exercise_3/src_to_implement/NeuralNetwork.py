@@ -1,3 +1,4 @@
+from Layers.BatchNormalization import BatchNormalization
 import Layers
 import numpy as np
 import copy
@@ -46,9 +47,11 @@ class NeuralNetwork:
         self.loss_layer = None
         self.weight_init = weight_initializer
         self.bias_init = bias_initializer
+        # show the layer is at testing model or not
+        self._phase = False
 
     '''
-    phase is to change testing_phase for all layers  ???
+    use _phase to change testing_phase for all layers
     '''
     @property
     def phase(self):
@@ -56,6 +59,8 @@ class NeuralNetwork:
     @phase.setter
     def phase(self, value):
         self._phase = value
+        for i in self.layers:
+            i.testing_phase = self._phase
     
     """
     forward calculation
@@ -67,8 +72,10 @@ class NeuralNetwork:
         regular_loss = 0
         for i in self.layers:
             # check if layer i has optimizer, cal regular loss for each layer
-            if i.optimizer:
-                regular_loss += i.optimizer.reg.norm(i.weights)
+            if i.optimizer_flag:
+                # check if optimizer got a regularizer
+                if i.optimizer.reg:
+                    regular_loss += i.optimizer.reg.norm(i.weights)
             self.input_tensor = i.forward(self.input_tensor)
         loss_val = self.loss_layer.forward(self.input_tensor, self.label_tensor) + regular_loss
         self.loss.append(loss_val)
@@ -88,7 +95,11 @@ class NeuralNetwork:
     layer is the FullyConnected layer or conv layer
     """
     def append_trainable_layer(self, layer):
-        layer.initialize(self.weight_init, self.bias_init)
+        # layer BatchNormalization need a different initialization
+        if isinstance(layer, BatchNormalization):
+            layer.initialize(layer.channel)
+        else:
+            layer.initialize(self.weight_init, self.bias_init)
         layer.optimizer = copy.deepcopy(self.optimizer)
         self.layers.append(layer)
     """
@@ -96,6 +107,7 @@ class NeuralNetwork:
     iterations is the times of iteration
     """
     def train(self, iterations):
+        self.phase = False
         for i in range(iterations):
             self.forward()
             self.backward()
@@ -104,6 +116,7 @@ class NeuralNetwork:
     get the output of final layer before loss_layer
     """
     def test(self, input_tensor):
+        self.phase = True
         for i in self.layers:
             input_tensor = i.forward(input_tensor)
         return input_tensor

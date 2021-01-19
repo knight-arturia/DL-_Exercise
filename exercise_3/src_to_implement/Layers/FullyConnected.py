@@ -14,7 +14,7 @@ class FullyConnected(BaseLayer):
 
     def __init__(self, input_size, output_size):
         # init father class Baslayer
-        super(BaseLayer, self).__init__()
+        super(FullyConnected, self).__init__()
         # interface of input data
         self.input = None
         # weight and bias are random value matrix; +1 means bias vector
@@ -46,6 +46,8 @@ class FullyConnected(BaseLayer):
         self._optimizer = Obj
         self._optimizer_b = copy.deepcopy(self._optimizer)
         self._optimizer_w = copy.deepcopy(self._optimizer)
+        # change the flag to show that optimizer is setted
+        self.optimizer_flag = True
     
     # Input matrix is (N,x+1); Weights matrix is (x+1,m); Output matrix is (N,m); 
     def forward(self, input_tensor):
