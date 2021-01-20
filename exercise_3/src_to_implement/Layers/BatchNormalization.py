@@ -12,8 +12,6 @@ class BatchNormalization(BaseLayer):
     running_mean = None    
     running_var = None
     
-    testing_phase = False
-
     optimizer = None
 
     _image_tensor_shape = None
@@ -21,7 +19,8 @@ class BatchNormalization(BaseLayer):
     gradient_bias = None
     gradient_weights = None
 
-
+    flag4debug = 0
+    
     def __init__(self, channel, momentum=0.8):
 
         super(BatchNormalization, self).__init__()
@@ -36,9 +35,9 @@ class BatchNormalization(BaseLayer):
 
     def initialize(self,channel):
                 
-        bias = np.zeros((1,channel)) #PB (channel,1)? channel?
+        bias = np.zeros(channel) #PB (channel,1)? channel?
         
-        weights = np.ones((1,channel))
+        weights = np.ones(channel)
 
         return bias,weights
         
@@ -92,29 +91,22 @@ class BatchNormalization(BaseLayer):
         
         self.input_tensor = input_tensor
         
-        BMN = input_tensor.shape[0]
+        # BMN = input_tensor.shape[0]
 
+        '''
         if self.weights.shape[0] == 1:
             
             self.weights = self.weights.repeat(BMN, axis=0)
             self.bias = self.bias.repeat(BMN, axis=0)
-
+        '''
         
         if not(self.testing_phase):            
+            
+            mu = np.mean(input_tensor, axis=0)
+            #mu = np.expand_dims(mu, 0).repeat(BMN, axis=0)
 
-            mu = input_tensor.mean(axis=0)
-            mu = np.expand_dims(mu, 0).repeat(BMN, axis=0)
-
-            xc = input_tensor - mu
-
-            '''
-            if np.sum(xc) > 0.0001:
-                print("xc1")
-                print(np.sum(xc))        
-            '''
-
-            var = np.mean(xc ** 2, axis=0)        
-            var = np.expand_dims(var, 0).repeat(BMN, axis = 0)
+            var = np.var(input_tensor, axis=0)
+            #var = np.expand_dims(var, 0).repeat(BMN, axis=0)            
 
             # self.var = var
         
@@ -157,30 +149,35 @@ class BatchNormalization(BaseLayer):
 
             error_tensor = self.reformat(error_tensor)
 
-        BMN = error_tensor.shape[0]
+        # BMN = error_tensor.shape[0]
         
         # Gradient with respect to weights
+        #print(error_tensor.shape)
         gradient_weights = np.multiply(error_tensor, self.xn)
         gradient_weights = np.sum(gradient_weights, axis=0)
-        gradient_weights = np.expand_dims(gradient_weights, 0).repeat(BMN, axis=0)
-
+        #print(gradient_weights.shape)
+        # gradient_weights = np.sum(gradient_weights, axis=0)
+        #gradient_weights = np.expand_dims(gradient_weights, 0).repeat(BMN, axis=0)
+        #print(gradient_weights.shape)
+        #print("vv\n")
         self.gradient_weights = gradient_weights
                 
         # Gradient with respect to bias
-        gradient_bias = np.sum(error_tensor, axis=0)
-        gradient_bias = np.expand_dims(gradient_bias, 0).repeat(BMN, axis=0)
+        gradient_bias = np.sum(error_tensor, axis=0)  #np.sum(error_tensor, axis=0)
+        #gradient_bias = np.expand_dims(gradient_bias, 0).repeat(BMN, axis=0)
 
         self.gradient_bias = gradient_bias
 
 
         # Gradient with respect to input
         gradient_input = Helpers.compute_bn_gradients(error_tensor, self.input_tensor, self.weights, self.running_mean, self.running_var)
-
+        #def compute_bn_gradients(error_tensor, input_tensor, weights, mean, var, eps=np.finfo(float).eps):
+            # computation of the gradient w.r.t the input for the batch_normalization layer
         # update weights and bias when optimiezer is defined
         if self.optimizer != None:
 
-            self.weights = self.optimizer.calculate_update(self.weights, gradient_weights)
-            self.weights = self.optimizer.calculate_update(self.bias, gradient_bias)
+            self.weights = self.optimizer.calculate_update(self.weights, self.gradient_weights)
+            self.bias = self.optimizer.calculate_update(self.bias, self.gradient_bias)
         
         if tensor_dimension == 4:
 

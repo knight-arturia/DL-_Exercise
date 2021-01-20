@@ -11,7 +11,7 @@ import datetime
 
 ID = 3  # identifier for dispatcher
 
-LSTM_TEST = 1
+LSTM_TEST = False #1
 
 class TestFullyConnected(unittest.TestCase):
     def setUp(self):
