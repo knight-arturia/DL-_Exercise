@@ -132,29 +132,34 @@ class RNN:
         
         # a inverse iteration from back to forward in sequence
         for i in np.arange(error_tensor.shape[0])[::-1]:
-            
+
             d_sigmoid = self.output_tensor[i] * (1 - self.output_tensor[i])
             e_h2 = np.dot(error_tensor[i] * d_sigmoid,  self.W_y.T)
 
-            gradient_W_y = np.outer(self.ht_tensor[i], error_tensor[i] * d_sigmoid)
+            e_t1 = (error_tensor[i] * d_sigmoid).reshape((-1, 1))
+            hidden = self.ht_tensor[i].reshape((-1, 1))
+            gradient_W_y = np.dot(hidden, e_t1.T)
+            # print("gradient_W_y: ", gradient_W_y.shape)
             gradient_B_y = error_tensor[i] * d_sigmoid
 
             d_tanh = 1 - self.ht_tensor[i] ** 2
-            e_h1 = e_h2 * d_tanh
-
+            e_h1 = (e_h2 * d_tanh).reshape((-1, 1))
+            print("e_h1: ", e_h1.shape)
             d_W_xh = self.input_tensor[i].reshape((-1, 1))
             d_W_hh = self.ht_tensor[i-1].reshape((-1, 1))
-            gradient_W_xh = np.outer(d_W_xh.T, e_h1)
-            gradient_W_hh = np.outer(d_W_hh.T, e_h1)
+            print("d_W_hh: ", d_W_hh.shape)
+            gradient_W_xh = np.dot(d_W_xh, e_h1.T)
+            gradient_W_hh = np.dot(d_W_hh, e_h1.T)
+            print("gradient_W_xh: ", gradient_W_xh.shape)
+            print("gradient_W_hh: ", gradient_W_hh.shape)
             gradient_W_hx = np.vstack((gradient_W_hh, gradient_W_xh))
+            print("gradient_W_hx: ", gradient_W_hx.shape)
             # print("gradient_W_xh shape: ", gradient_W_xh.shape)
             # print("gradient_W_hh shape: ", gradient_W_hh.shape)
 
             gradient_B_hx = e_h1
-
-            W_xh = self.W_hx[self.hidden_size : self.hidden_size+self.input_size] 
-            e_x = np.dot(e_h1, W_xh.T)
-            output_error_tensor[i] = e_x
+            e_x = np.dot(gradient_W_xh, e_h1)
+            output_error_tensor[i:i+1] = e_x.T
 
         # update the W_hx and bias
         if self._optimizer:
@@ -164,39 +169,3 @@ class RNN:
             self.B_hx = self._optimizer.calculate_update(self.B_hx, gradient_B_hx)
         
         return output_error_tensor
-        '''
-            # ready for the back propagation to k2 steps
-            # cut W_hx and get a W_hh, for gradient d_ht  
-            W_hh = self.W_hx[0:self.hidden_size]
-
-
-                
-                # d_W_hh += np.outer(d_ht * d_tanh, self.ht_tensor[step-1])
-                # d_W_xh += np.outer(self.input_tensor[step], d_ht * d_tanh)
-                
-
-                d_hx += np.dot(d_ht * d_tanh, self.W_hx.T)
-
-                # update d_ht to step-1
-                d_ht = np.dot(d_ht * d_tanh, W_hh.T)
-
-            d_x = d_hx[self.hidden_size: self.hidden_size+self.input_size]
-            output_error_tensor[i] = d_x
-            
-        # update the W_hx and bias
-        if self._optimizer:
-            self.W_y = self._optimizer.calculate_update(self.W_y, d_W_y)
-            self.B_y = self._optimizer.calculate_update(self.B_y, d_B_y)
-            self.W_hx = self._optimizer.calculate_update(self.W_hx, d_W_hx)
-            self.B_hx = self._optimizer.calculate_update(self.B_hx, d_B_hx)
-        
-        # delete the last col
-        return output_error_tensor
-        '''
-
-
-
-
-
-
-
