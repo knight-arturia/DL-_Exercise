@@ -115,7 +115,7 @@ class RNN:
     '''
     def backward(self, error_tensor):
         
-        # print('error_shape = ', error_tensor.shape)
+        print('error_shape = ', error_tensor.shape)
         
         # init all gradient
         d_W_y = np.zeros(self.W_y.shape)
@@ -131,22 +131,40 @@ class RNN:
         for i in np.arange(error_tensor.shape[0])[::-1]:
             
             d_sigmoid = self.output_tensor[i] * (1 - self.output_tensor[i])
-            d_ht = np.dot(error_tensor[i] * d_sigmoid,  self.W_y.T)
-            d_W_y = np.outer(self.ht_tensor[i], error_tensor[i] * d_sigmoid)
-            d_B_y = error_tensor[i] * d_sigmoid
-            
+            e_h2 = np.dot(error_tensor[i] * d_sigmoid,  self.W_y.T)
+
+            gradient_W_y = np.outer(self.ht_tensor[i], error_tensor[i] * d_sigmoid)
+            gradient_B_y = error_tensor[i] * d_sigmoid
+
+            d_tanh = 1 - self.ht_tensor[i] ** 2
+            e_h1 = e_h2 * d_tanh
+
+            d_W_xh = self.input_tensor[i].reshape((-1, 1))
+            d_W_hh = self.ht_tensor[i-1].reshape((-1, 1))
+            gradient_W_xh = np.outer(d_W_xh.T, e_h1)
+            gradient_W_hh = np.outer(d_W_hh.T, e_h1)
+            print("gradient_W_xh shape: ", gradient_W_xh.shape)
+            print("gradient_W_hh shape: ", gradient_W_hh.shape)
+
+
+            state_plus_input = np.hstack((self.ht_tensor[i - 1], self.input_tensor[i]))
+            d_W_hx += np.outer(state_plus_input, d_ht * d_tanh)
+            W_hh = self.W_hx[0:self.hidden_size]
+            d_B_hx += d_ht * d_tanh
+            d_hx += np.dot(d_ht * d_tanh, self.W_hx.T)
+            d_ht = np.dot(d_ht * d_tanh, W_hh.T)
+        return None
+        '''
             # ready for the back propagation to k2 steps
             # cut W_hx and get a W_hh, for gradient d_ht  
             W_hh = self.W_hx[0:self.hidden_size]
-            for step in np.arange(max(0, i-self.k2), i+1)[::-1]:
 
-                d_tanh = 1 - self.ht_tensor[step]**2
+
+                
                 # d_W_hh += np.outer(d_ht * d_tanh, self.ht_tensor[step-1])
                 # d_W_xh += np.outer(self.input_tensor[step], d_ht * d_tanh)
-                state_plus_input = np.hstack((self.ht_tensor[step-1], self.input_tensor[step]))
-                d_W_hx += np.outer(state_plus_input, d_ht * d_tanh)
-                d_B_hx += d_ht * d_tanh
                 
+
                 d_hx += np.dot(d_ht * d_tanh, self.W_hx.T)
 
                 # update d_ht to step-1
@@ -164,6 +182,7 @@ class RNN:
         
         # delete the last col
         return output_error_tensor
+        '''
 
 
 
