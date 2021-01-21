@@ -115,15 +115,18 @@ class RNN:
     '''
     def backward(self, error_tensor):
         
-        print('error_shape = ', error_tensor.shape)
+        # print('error_shape = ', error_tensor.shape)
         
         # init all gradient
-        d_W_y = np.zeros(self.W_y.shape)
-        d_B_y = np.zeros(self.B_y.shape)
-        d_W_hx = np.zeros(self.W_hx.shape)
-        d_B_hx = np.zeros(self.B_hx.shape)
+        gradient_W_y = np.zeros(self.W_y.shape)
+        gradient_B_y = np.zeros(self.B_y.shape)
         
-        d_hx = np.zeros(self.hidden_size+self.input_size)
+        # gradient W_hx is the combine of W_hh and W_xh
+        gradient_W_hx = np.zeros(self.W_hx.shape)
+        gradient_B_hx = np.zeros(self.B_hx.shape)
+        # gradient_W_xh = np.zeros((self.input_size, self.hidden_size))
+        # gradient_W_hh = np.zeros((self.hidden_size, self.hidden_size))
+        d_B_hx = np.zeros(self.B_hx.shape)
         
         output_error_tensor = np.zeros(self.input_tensor.shape)
         
@@ -143,17 +146,24 @@ class RNN:
             d_W_hh = self.ht_tensor[i-1].reshape((-1, 1))
             gradient_W_xh = np.outer(d_W_xh.T, e_h1)
             gradient_W_hh = np.outer(d_W_hh.T, e_h1)
-            print("gradient_W_xh shape: ", gradient_W_xh.shape)
-            print("gradient_W_hh shape: ", gradient_W_hh.shape)
+            gradient_W_hx = np.vstack((gradient_W_hh, gradient_W_xh))
+            # print("gradient_W_xh shape: ", gradient_W_xh.shape)
+            # print("gradient_W_hh shape: ", gradient_W_hh.shape)
 
+            gradient_B_hx = e_h1
 
-            state_plus_input = np.hstack((self.ht_tensor[i - 1], self.input_tensor[i]))
-            d_W_hx += np.outer(state_plus_input, d_ht * d_tanh)
-            W_hh = self.W_hx[0:self.hidden_size]
-            d_B_hx += d_ht * d_tanh
-            d_hx += np.dot(d_ht * d_tanh, self.W_hx.T)
-            d_ht = np.dot(d_ht * d_tanh, W_hh.T)
-        return None
+            W_xh = self.W_hx[self.hidden_size : self.hidden_size+self.input_size] 
+            e_x = np.dot(e_h1, W_xh.T)
+            output_error_tensor[i] = e_x
+
+        # update the W_hx and bias
+        if self._optimizer:
+            self.W_y = self._optimizer.calculate_update(self.W_y, gradient_W_y)
+            self.B_y = self._optimizer.calculate_update(self.B_y, gradient_B_y)
+            self.W_hx = self._optimizer.calculate_update(self.W_hx, gradient_W_hx)
+            self.B_hx = self._optimizer.calculate_update(self.B_hx, gradient_B_hx)
+        
+        return output_error_tensor
         '''
             # ready for the back propagation to k2 steps
             # cut W_hx and get a W_hh, for gradient d_ht  
