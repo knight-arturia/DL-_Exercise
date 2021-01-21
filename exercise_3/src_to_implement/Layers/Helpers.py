@@ -138,7 +138,7 @@ def compute_bn_gradients(error_tensor, input_tensor, weights, mean, var, eps=np.
     sqrt_var = np.sqrt(var_eps)
     first = gamma_err * 1. / sqrt_var
 
-    grad_mu_two =  (grad_var * np.sum(-2. * norm_mean, keepdims=True, axis=0)) * inv_batch
+    grad_mu_two = (grad_var * np.sum(-2. * norm_mean, keepdims=True, axis=0)) * inv_batch
     grad_mu_one = np.sum(gamma_err * -1. / sqrt_var, keepdims=True, axis=0)
 
     second = grad_var * (2. * norm_mean) * inv_batch
