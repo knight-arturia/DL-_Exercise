@@ -57,11 +57,11 @@ class BatchNormalization(BaseLayer):
     
     def image2vec(self,tensor):
         
-        B, C, M, N = tensor.shape
+        B, C, M, N = tensor.shape #Batch, channel, spatial diemensions
 
         tensor = tensor.reshape((B, C, M * N))
                 
-        tensor = tensor.transpose((0, 2, 1))
+        tensor = tensor.transpose((0, 2, 1)) # B,MN,C
 
         tensor = tensor.reshape((B * M * N, C))
         
@@ -99,19 +99,19 @@ class BatchNormalization(BaseLayer):
             self.weights = self.weights.repeat(BMN, axis=0)
             self.bias = self.bias.repeat(BMN, axis=0)
         '''
-        
-        if not(self.testing_phase):            
-            
-            mu = np.mean(input_tensor, axis=0)
-            #mu = np.expand_dims(mu, 0).repeat(BMN, axis=0)
+        mu = np.mean(input_tensor, axis=0)
+        #mu = np.expand_dims(mu, 0).repeat(BMN, axis=0)
 
-            var = np.var(input_tensor, axis=0)
-            #var = np.expand_dims(var, 0).repeat(BMN, axis=0)            
+        var = np.var(input_tensor, axis=0)
+        #var = np.expand_dims(var, 0).repeat(BMN, axis=0)            
 
-            # self.var = var
+        self.mu = mu
+        self.var = var
         
+        if not(self.testing_phase):                
+
             
-            # calculate mean        
+            # calculate estimations of mean and var of the whole orignal data
             if self.running_mean is None:
 
                 self.running_mean = mu
