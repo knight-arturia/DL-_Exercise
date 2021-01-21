@@ -10,3 +10,5 @@ print(b)
 c = np.outer(a,b)
 
 print(c[0:3])
+
+a = np.zeros()
