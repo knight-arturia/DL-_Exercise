@@ -168,15 +168,17 @@ class Conv(BaseLayer):
         
 
         # col_err.shape(out_h*out_w*batch , kern_num)
-        col_err = error_tensor.transpose(0, 2, 3, 1).reshape(-1, self.kern_num)
+        col_err = error_tensor.transpose(0, 2, 3, 1).reshape(-1, self.kern_num)#convolution
         # cal gradient of weights and bias
         self.gradient_weights = np.dot(self.input_col.T, col_err)
         self.gradient_weights = self.gradient_weights.transpose(1, 0).reshape(self.weights.shape)
         self.gradient_bias = np.sum(col_err, axis=0)
 
         # cal grad of input in col form
-        d_input_col = np.dot(col_err, self.weight_col.T)
+        d_input_col = np.dot(col_err, self.weight_col.T) #convolution
         
+
+
         # transform col form back to image form
         num, channels, filter_h, filter_w = self.weights.shape
         next_err = self.col2im(d_input_col, self.input_shape_extend, filter_h, filter_w)

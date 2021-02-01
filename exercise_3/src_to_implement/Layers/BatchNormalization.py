@@ -14,39 +14,33 @@ class BatchNormalization(BaseLayer):
     gradient_bias = None
     gradient_weights = None
     flag4debug = 0
-    
     def __init__(self, channel, momentum=0.8):
         super(BatchNormalization, self).__init__()
         self.channel = channel
         self.bias, self.weights = self.initialize(channel)
         self.momentum = momentum
-    
     def initialize(self, channel):
         bias = np.zeros(channel)  # PB (channel,1)? channel?
         weights = np.ones(channel)
         return bias, weights
-    
     def reformat(self, tensor):
         if tensor.ndim == 4:
             self._image_tensor_shape = tensor.shape
             return self.image2vec(tensor)
         else:
             return self.vec2image(self._image_tensor_shape, tensor)
-    
     def image2vec(self, tensor):
         B, C, M, N = tensor.shape
         tensor = tensor.reshape((B, C, M * N))
         tensor = tensor.transpose((0, 2, 1))
         tensor = tensor.reshape((B * M * N, C))
         return tensor
-    
     def vec2image(self, shape, tensor):
         B, C, M, N = shape
         tensor = tensor.reshape((B, M * N, C))
         tensor = tensor.transpose((0, 2, 1))
         tensor = tensor.reshape((B, C, M, N))
         return tensor
-    
     def forward(self, input_tensor):
         tensor_dimension = input_tensor.ndim
         if tensor_dimension == 4:
@@ -88,7 +82,6 @@ class BatchNormalization(BaseLayer):
         if tensor_dimension == 4:
             output_tensor = self.reformat(output_tensor)
         return output_tensor
-    
     def backward(self, error_tensor):
         tensor_dimension = error_tensor.ndim
         if tensor_dimension == 4:
@@ -118,5 +111,4 @@ class BatchNormalization(BaseLayer):
             self.bias = self.optimizer.calculate_update(self.bias, self.gradient_bias)
         if tensor_dimension == 4:
             gradient_input = self.reformat(gradient_input)
-        
         return gradient_input
