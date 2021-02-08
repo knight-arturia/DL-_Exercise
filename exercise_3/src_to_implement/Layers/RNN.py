@@ -54,11 +54,14 @@ class RNN:
                 # set the h_t-1 back to 0
                 # ht_tensor[i-1] = 0
             # attach input vector with hidden state
+            
             state_plus_input = np.hstack((self.hidden_state, input_tensor[i]))
             ht = np.tanh(np.dot(state_plus_input, self.W_hx) + self.B_hx)
+            
             # save h_t for backward propagation
             ht_tensor[i] = ht
             self.hidden_state = ht
+            
             y1 = np.dot(self.hidden_state, self.W_y) + self.B_y
             output_tensor[i] = 1 / (1 + np.exp(-y1))
         # store the input, output, ht for the backpropagation
@@ -112,6 +115,7 @@ class RNN:
         # gradient W_hx is the combine of W_hh and W_xh
         gradient_W_hx = np.zeros(self.W_hx.shape)
         gradient_B_hx = np.zeros(self.B_hx.shape)
+        
         # gradient_W_xh = np.zeros((self.input_size, self.hidden_size))
         # gradient_W_hh = np.zeros((self.hidden_size, self.hidden_size))
         # d_B_hx = np.zeros(self.B_hx.shape)
@@ -124,6 +128,7 @@ class RNN:
             gradient_W_y += np.outer(self.ht_tensor[i], error_tensor[i] * d_sigmoid)
             gradient_B_y += error_tensor[i] * d_sigmoid
             d_tanh = 1 - self.ht_tensor[i] ** 2
+            
             e_h1 = e_h2 * d_tanh
             d_W_xh = self.input_tensor[i].reshape((-1, 1))
             if i == 0:
@@ -140,6 +145,7 @@ class RNN:
             output_error_tensor[i] = e_x
         self.gradient_W_hx = gradient_W_hx
         # update the W_hx and bias
+        
         if self._optimizer:
             self.W_y = self._optimizer.calculate_update(self.W_y, gradient_W_y)
             self.B_y = self._optimizer1.calculate_update(self.B_y, gradient_B_y)
