@@ -1,6 +1,7 @@
 import torch
 from torch import Tensor
 import torch.nn as nn
+from torch.nn.modules.batchnorm import BatchNorm2d
 
 '''
 basic block of resnet, consist of:
@@ -16,7 +17,7 @@ def conv1x1(in_channels, out_channels,  stride=1) -> nn.Conv2d:
 
 # 3*3 convolution
 def conv3x3(in_channels, out_channels,  stride=1) -> nn.Conv2d:
-    return nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride)
+    return nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1)
 
 
 class ResBlock(nn.Module):
@@ -32,6 +33,14 @@ class ResBlock(nn.Module):
         
         self.stride = stride
 
+        # downsampling identity to adapt shape change between two ResBlocks
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_channels != out_channels:
+            self.shortcut = nn.Sequential(
+                conv1x1(in_channels, out_channels, stride),
+                nn.BatchNorm2d(out_channels)
+            )
+
     def forward(self, x) ->Tensor:
         identity = x
 
@@ -44,7 +53,7 @@ class ResBlock(nn.Module):
         x = self.bn2(x)
 
         # add the identity
-        x += identity
+        x += self.shortcut(identity)
         x = self.relu(x)
 
         return x
@@ -81,10 +90,10 @@ class ResNet(nn.Module):
         x = self.relu(x)
         x = self.maxpool(x)
 
-        x = self.block1.forward(x)
-        x = self.block2.forward(x)
-        x = self.block3.forward(x)
-        x = self.block4.forward(x)
+        x = self.block1(x)
+        x = self.block2(x)
+        x = self.block3(x)
+        x = self.block4(x)
 
         x = self.avgpool(x)
         x = self.flatten(x)

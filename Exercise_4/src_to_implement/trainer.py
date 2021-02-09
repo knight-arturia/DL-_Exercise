@@ -150,29 +150,37 @@ class Trainer:
         while True:
             
             # stop by epoch number
-            if counter >= epochs or counter >= self._early_stopping_patience:
+            if counter >= epochs:
+                break
+
+            if counter >= self._early_stopping_patience:
                 # train for a epoch and then calculate the loss and metrics on the validation set
                 train_loss = self.train_epoch()
                 vali_loss, vali_metric = self.val_test()
                 
                 # append the losses to the respective lists
-                losses.append(train_loss)
-                losses.append(vali_loss)
+                train_losses.append(train_loss)
+                vali_losses.append(vali_loss)
                 
                 # use the save_checkpoint function to save the model (can be restricted to epochs with improvement)
                 self.save_checkpoint(counter)
                 # check whether early stopping should be performed using the early stopping criterion and stop if so
-                if train_losses[-1] - train_losses[-2] >= 0:
+                if vali_losses[-1] - vali_losses[-2] >= 0:
                     print("Early Stopping")
                     break
                 else:
+                    counter += 1
                     continue
             else:
-                self.train_epoch()
+                train_loss = self.train_epoch()
+                print("Train Loss for %d th Epoch is %f" %(counter, train_loss))
                 counter += 1
             
+            res = []
+            res.append(train_losses)
+            res.append(vali_losses)
             # return the losses for both training and validation
-            return train_losses, vali_losses
+            return res
                     
         
         
