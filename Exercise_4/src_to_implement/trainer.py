@@ -1,6 +1,6 @@
 import torch as t
 from sklearn.metrics import f1_score
-from tqdm.autonotebook import tqdm
+from tqdm.autonotebook import tqdm # tqdm is to get a progress bar
 
 
 class Trainer:
@@ -48,60 +48,131 @@ class Trainer:
               output_names = ['output'], # the model's output names
               dynamic_axes={'input' : {0 : 'batch_size'},    # variable lenght axes
                             'output' : {0 : 'batch_size'}})
-            
+
+    '''
+    x is images
+    y is labels
+    step means the process for each image
+    '''
     def train_step(self, x, y):
         # perform following steps:
         # -reset the gradients
+        self._optim.zero_grad()
+
         # -propagate through the network
+        output = self._model(x)
+
         # -calculate the loss
+        loss = self._crit(output, y)
+
         # -compute gradient by backward propagation
+        loss.backward()
+
         # -update weights
-        # -return the loss
-        #TODO
+        self._optim.step()
         
+        # -return the loss
+        return loss
         
     
     def val_test_step(self, x, y):
-        
         # predict
+        output = self._model(x)
+
         # propagate through the network and calculate the loss and predictions
-        # return the loss and the predictions
-        #TODO
+        loss = self._crit(output, y).item()
+        # get the index of max probability as prediction
+        _, pred = t.max(output, 1)
         
+        # return the loss and the predictions
+        return loss, pred
+        
+    
     def train_epoch(self):
+        loss = 0.0
+        
         # set training mode
+        self._model.train() 
+        
         # iterate through the training set
-        # transfer the batch to "cuda()" -> the gpu if a gpu is given
-        # perform a training step
+        for (data, label) in tqdm(enumerate(self._train_dl)):
+            # transfer the batch to "cuda()" -> the gpu if a gpu is given
+            data.to(t.device('cuda'))
+            label.to(t.device('cuda'))
+            
+            # perform a training step
+            loss += self.train_step(data, label).item()
+
         # calculate the average loss for the epoch and return it
-        #TODO
+        return loss / len(self._train_dl)
     
     def val_test(self):
+        test_loss = 0.0
+
+        label_list = []
+        pred_list = []
+        
         # set eval mode
+        self._model.eval()
+        print("Test Process")
+        
         # disable gradient computation
-        # iterate through the validation set
-        # transfer the batch to the gpu if given
-        # perform a validation step
-        # save the predictions and the labels for each batch
+        with t.no_grad():
+            # iterate through the validation set
+            for (data, label) in tqdm(self._val_test_dl):
+                # transfer the batch to the gpu if given
+                data.to(t.device('cuda'))
+                label.to(t.device('cuda'))
+                
+                # perform a validation step
+                loss, pred = self.val_test_step(data, label)
+                test_loss += loss
+                
+                # save the predictions and the labels for each batch
+                label_list.append(label)
+                pred_list.append(pred)
+
         # calculate the average loss and average metrics of your choice. You might want to calculate these metrics in designated functions
+        avg_metric = f1_score(label_list, pred_list)
+        avg_loss = test_loss / len(self._val_test_dl)
+        
         # return the loss and print the calculated metrics
-        #TODO
+        return avg_loss, avg_metric
         
     
     def fit(self, epochs=-1):
         assert self._early_stopping_patience > 0 or epochs > 0
         # create a list for the train and validation losses, and create a counter for the epoch 
-        #TODO
+        train_losses = []
+        vali_losses = []
+        counter = 0
         
         while True:
-      
+            
             # stop by epoch number
-            # train for a epoch and then calculate the loss and metrics on the validation set
-            # append the losses to the respective lists
-            # use the save_checkpoint function to save the model (can be restricted to epochs with improvement)
-            # check whether early stopping should be performed using the early stopping criterion and stop if so
+            if counter >= epochs or counter >= self._early_stopping_patience:
+                # train for a epoch and then calculate the loss and metrics on the validation set
+                train_loss = self.train_epoch()
+                vali_loss, vali_metric = self.val_test()
+                
+                # append the losses to the respective lists
+                losses.append(train_loss)
+                losses.append(vali_loss)
+                
+                # use the save_checkpoint function to save the model (can be restricted to epochs with improvement)
+                self.save_checkpoint(counter)
+                # check whether early stopping should be performed using the early stopping criterion and stop if so
+                if train_losses[-1] - train_losses[-2] >= 0:
+                    print("Early Stopping")
+                    break
+                else:
+                    continue
+            else:
+                self.train_epoch()
+                counter += 1
+            
             # return the losses for both training and validation
-        #TODO
+            return train_losses, vali_losses
                     
         
         
