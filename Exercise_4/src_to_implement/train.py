@@ -10,30 +10,31 @@ from sklearn.model_selection import train_test_split
 
 # load the data from the csv file and perform a train-test-split
 # this can be accomplished using the already imported pandas and sklearn.model_selection modules
-dataset = pd.read_csv('data.csv')
+dataset = pd.read_csv('data.csv', delimiter=';')
 
 trainset, testset = train_test_split(dataset, test_size=0.25, random_state=0)
 
 # set up data loading for the training and validation set each using t.utils.data.DataLoader and ChallengeDataset objects
-train_dl = t.utils.data.DataLoader(trainset)
-test_dl = ChallengeDataset(testset, 'test')
-print(train_dl)
-print(test_dl)
+train_dl = ChallengeDataset(trainset, 'train')
+# print(train_dl[1])
+test_dl = ChallengeDataset(testset, 'val')
 
 # create an instance of our ResNet model
 net = model.ResNet()
 
 # set up a suitable loss criterion (you can find a pre-implemented loss functions in t.nn)
-criterion = t.nn.CrossEntropyLoss()
+criterion = t.nn.MSELoss()
 
 # set up the optimizer (see t.optim)
-optimizer = t.optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
+# optimizer = t.optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
+optimizer = t.optim.Adam(net.parameters(), lr=1e-3, betas=(0.9, 0.999), eps=1e-08)
 
 # create an object of type Trainer and set its early stopping criterion
-trainer = Trainer(net, criterion, optimizer, train_dl, test_dl, cuda= True, early_stopping_patience= 10)
+trainer = Trainer(net, criterion, optimizer, train_dl, test_dl, cuda= True, early_stopping_patience= 5)
 
 # go, go, go... call fit on trainer
 res = trainer.fit(20)
+print(res)
 
 # plot the results
 plt.plot(np.arange(len(res[0])), res[0], label='train loss')

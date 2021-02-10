@@ -57,7 +57,8 @@ class ChallengeDataset(Dataset):
         # feature is all cols except first one
         labels = self.data_frame.iloc[index, 1:]
         labels = np.array(labels, dtype = int)
-        
+        labels = torch.from_numpy(labels).float()
+
         # print('labels = ', labels)
         # print('type = ', labels.dtype)
 
