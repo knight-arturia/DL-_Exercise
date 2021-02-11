@@ -27,13 +27,13 @@ criterion = t.nn.MSELoss()
 
 # set up the optimizer (see t.optim)
 # optimizer = t.optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
-optimizer = t.optim.Adam(net.parameters(), lr=1e-3, betas=(0.9, 0.999), eps=1e-08)
+optimizer = t.optim.Adam(net.parameters(), lr=3e-4, betas=(0.9, 0.999), eps=1e-08)
 
 # create an object of type Trainer and set its early stopping criterion
-trainer = Trainer(net, criterion, optimizer, train_dl, test_dl, cuda= True, early_stopping_patience= 5)
+trainer = Trainer(net, criterion, optimizer, train_dl, test_dl, cuda= True, early_stopping_patience= 3)
 
 # go, go, go... call fit on trainer
-res = trainer.fit(20)
+res = trainer.fit(50)
 print(res)
 
 # plot the results

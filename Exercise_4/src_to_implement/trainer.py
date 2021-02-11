@@ -158,44 +158,42 @@ class Trainer:
         train_losses = []
         vali_losses = []
         counter = 0
-        
+        patient_counter = 0
+
         while True:
             
             # stop by epoch number
             if counter >= epochs:
                 break
 
-            if counter >= self._early_stopping_patience:
-                # train for a epoch and then calculate the loss and metrics on the validation set
-                train_loss = self.train_epoch()
-                print("Train Loss for %d th Epoch is %f" %(counter, train_loss))
-                vali_loss, _ = self.val_test()
-                print("Test Process, Vali Loss is %f" %(vali_loss))
+            # train for a epoch and then calculate the loss and metrics on the validation set
+            train_loss = self.train_epoch()
+            print("Train Loss for %d th Epoch is %f" %(counter, train_loss))
+            vali_loss, _ = self.val_test()
+            print("Test Process, Vali Loss is %f" %(vali_loss))
+            
+            # append the losses to the respective lists
+            train_losses.append(train_loss)
+            vali_losses.append(vali_loss)
+            
+            # use the save_checkpoint function to save the model (can be restricted to epochs with improvement)
+            self.save_checkpoint(counter)
+            
+            # check whether early stopping should be performed using the early stopping criterion and stop if so
+            if counter >= 1:
                 
-                # append the losses to the respective lists
-                train_losses.append(train_loss)
-                vali_losses.append(vali_loss)
-                
-                # use the save_checkpoint function to save the model (can be restricted to epochs with improvement)
-                self.save_checkpoint(counter)
-                # check whether early stopping should be performed using the early stopping criterion and stop if so
-                if counter >= self._early_stopping_patience + 1:
-                    if vali_losses[-1] - vali_losses[-2] >= 0:
+                if vali_losses[-1] > vali_losses[-2]:
+                    
+                    patient_counter += 1
+
+                    if patient_counter >= self._early_stopping_patience:
                         print("Early Stopping")
                         break
-                    else:
-                        counter += 1
-                        continue
                 else:
-                    counter += 1
-                    continue
-            else:
-                train_loss = self.train_epoch()
-                print("Train Loss for %d th Epoch is %f" %(counter, train_loss))
-
-                train_losses.append(train_loss)
-                counter += 1
+                    patient_counter = 0
             
+            counter += 1
+        
         res = []
         train_losses = np.array(train_losses)
         vali_losses = np.array(vali_losses)
